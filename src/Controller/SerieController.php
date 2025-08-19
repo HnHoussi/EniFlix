@@ -71,11 +71,11 @@ final class SerieController extends AbstractController
             'serie' => $serie
         ]);
     }
+
     #[Route('/create', name: '_create')]
     public function create(Request $request, EntityManagerInterface $em): Response
     {
         $serie = new Serie();
-
         $form = $this->createForm(SerieType::class, $serie);
 
         $form->handleRequest($request);
@@ -88,8 +88,9 @@ final class SerieController extends AbstractController
 
             return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
         }
+
         return $this->render('serie/edit.html.twig', [
-            'serie_form' => $form
+            'serie_form' => $form,
         ]);
     }
 
@@ -103,12 +104,29 @@ final class SerieController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
-            $this->addFlash('success', 'La série a été mise a jour');
+            $this->addFlash('success', 'Une série a été mise à jour');
 
             return $this->redirectToRoute('serie_detail', ['id' => $serie->getId()]);
         }
+
         return $this->render('serie/edit.html.twig', [
-            'serie_form' => $form
+            'serie_form' => $form,
         ]);
     }
+
+    #[Route('/delete/{id}', name: '_delete', requirements: ['id' => '\d+'])]
+    public function delete(Serie $serie, EntityManagerInterface $em, Request $request): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$serie->getId(), $request->get('token'))) {
+            $em->remove($serie);
+            $em->flush();
+
+            $this->addFlash('success', 'La série a été supprimée');
+        } else {
+            $this->addFlash('danger', 'Suppression impossible');
+        }
+
+        return $this->redirectToRoute('serie_list');
+    }
+
 }
