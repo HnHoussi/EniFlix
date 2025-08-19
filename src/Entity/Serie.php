@@ -6,6 +6,7 @@ use App\Repository\SerieRepository;
 use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\HasLifecycleCallbacks]
 #[ORM\Entity(repositoryClass: SerieRepository::class)]
@@ -18,15 +19,19 @@ class Serie
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message :'Ce champs est obligatoire')]
+    #[Assert\Length(min: 2, max: 20, minMessage: 'Plus que {{ limit }} caractères ', maxMessage: 'Moins que {{ limit }} caractères svp')]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $overview = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Choice(choices: ['returning', 'ended', 'Canceled'], message :'Ce choix est non valable')]
     private ?string $status = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Range(notInRangeMessage: 'Les votes doivent être entre {{ min }} et {{ max }}', min: 0, max: 10)]
     private ?float $vote = null;
 
     #[ORM\Column(nullable: true)]
@@ -36,9 +41,17 @@ class Serie
     private ?string $genre = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Assert\LessThan('today', message: 'La date de lancement ne doit pas être postérieur à {{ compared_value }}')]
     private ?\DateTime $firstAirDate = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Assert\GreaterThan(propertyPath: 'firstAirDate')]
+    #[Assert\When(
+        expression :'this.getStatus() == "ended" || this.getStatus() == "Canceled"',
+        constraints: [
+            new Assert\NotBlank(message :'Vu le status, il ne faut pas de date de fin')
+        ]
+    )]
     private ?\DateTime $lastAirDate = null;
 
     #[ORM\Column(length: 255, nullable: true)]

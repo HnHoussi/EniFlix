@@ -80,7 +80,7 @@ final class SerieController extends AbstractController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($serie);
             $em->flush();
 
@@ -92,6 +92,7 @@ final class SerieController extends AbstractController
             'serie_form' => $form
         ]);
     }
+
     #[Route('/update/{id}', name: '_update', requirements: ['id' => '\d+'])]
     public function update(Serie $serie, Request $request, EntityManagerInterface $em): Response
     {
@@ -99,7 +100,7 @@ final class SerieController extends AbstractController
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
             $this->addFlash('success', 'La série a été mise a jour');
